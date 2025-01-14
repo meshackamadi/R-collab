@@ -1,0 +1,84 @@
+---
+title: "Wealth and Life Expectancy(Gapminder)"
+author: "mesh"
+date: "2025-01-11"
+output: html_document
+---
+
+# Background Section
+Some of the things I learnt recreating this plots are:
+
+- Using the alpha argument to determine the level of transparency I want for my plot.
+- The scale_size_continous function helps me set the size scale for the points displayed with my choice of name, also helps in better data representation.
+- The specified theme 'theme_bw()' brings in the white background which helps the plot easy to be understood within seconds.
+- I was excited to explore the weighted mean function, and the statistical powress it posses.
+- Recreating this plot has helped my practiced data transformation through grouping and categorizing datasets.
+
+# Image Section 
+### first plot 
+```{r}
+#loading libraries
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(gapminder)
+
+#taking a deeper understanding of the dataset
+?gapminder
+glimpse(gapminder)
+
+
+#creating a plot
+#but first filter the dataset to get the specified years.
+```{r}
+fgapminder <- gapminder %>%
+  filter(year %in% c(1952, 1957, 1962, 1967, 1972, 1977, 1982, 1987, 1992, 1997, 2002, 2007))
+
+#create the first plot
+```{r}
+plt1 <- ggplot(fgapminder, aes(x = lifeExp, y = gdpPercap, color = continent, size = pop / 100000)) +
+  geom_point(alpha = 0.7) + 
+  scale_size_continuous(name = "population(100k)") +
+  scale_y_continuous(name = "GDP per capita", trans = "sqrt") +
+  scale_x_continuous(name = "Life Exp. ") +
+  facet_wrap(~ year, ncol = 12) +
+  theme_bw() +
+  ggtitle("GDP per capita Vs Life Exp.") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+print(plt1)
+```
+
+
+### second plot 
+```{r}
+#drafting the second plot
+# Calculate the weighted mean GDP per capita for each continent and year
+continent_avg <- gapminder %>%
+  group_by(continent, year) %>%
+  summarise(
+    gdpPercap_weighted = weighted.mean(gdpPercap, pop),
+    pop_total = sum(pop) / 100000
+  )
+
+# Create the second plot
+plt2 <- ggplot(gapminder, aes(x = year, y = gdpPercap, color = continent)) +
+  geom_line(aes(group = country), alpha = 0.6) +
+  geom_point(aes(group = country), size = 2, alpha = 0.7) +
+  geom_point(data = continent_avg, aes(x = year, y = gdpPercap_weighted, size = pop_total), color = "black") +
+  scale_size_continuous(name = "Population (100k)", range = c(2, 6)) +
+  scale_y_continuous(name = "GDP per capita", trans = "sqrt") +
+  theme_bw() +
+  facet_wrap(~ continent, ncol = 5) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+print(plt2)
+
+
+#saving the plots 
+```{r}
+ggsave("plot1.png", plt1, width = 20, height = 10)
+ggsave("plot2.png", plt2, width = 20, height = 10)
+```
+
+  
